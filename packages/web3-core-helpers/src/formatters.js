@@ -211,6 +211,14 @@ var outputTransactionReceiptFormatter = function (receipt){
     receipt.gasUsed = utils.hexToNumber(receipt.gasUsed);
 
     if(_.isArray(receipt.logs)) {
+        var isContractDeployment = Boolean(receipt.contractAddress);
+
+        if (isContractDeployment) {
+            receipt.logs.forEach(log => {
+                log.isContractDeployment = isContractDeployment;
+            });
+        }
+
         receipt.logs = receipt.logs.map(outputLogFormatter);
     }
 
@@ -331,8 +339,12 @@ var outputLogFormatter = function(log) {
     if (log.logIndex !== null)
         log.logIndex = utils.hexToNumber(log.logIndex);
 
-    if (log.address) {
+    if (log.address && !log.isContractDeployment) {
         log.address = utils.toChecksumAddress(log.address);
+    }
+
+    if (log.isContractDeployment) {
+        delete log.isContractDeployment;
     }
 
     return log;
@@ -443,4 +455,3 @@ module.exports = {
     outputPostFormatter: outputPostFormatter,
     outputSyncingFormatter: outputSyncingFormatter
 };
-
